@@ -109,10 +109,10 @@ import dj_database_url
 DATABASE_URL = os.environ.get('DATABASE_URL')
 
 if DATABASE_URL:
-    # Production Cloud Database (Railway, DigitalOcean, Heroku, Aiven)
+    # Production Cloud Database (Neon, Supabase, Railway, DigitalOcean)
     DATABASES = {
-        'default': dj_database_url.config(
-            default=DATABASE_URL,
+        'default': dj_database_url.parse(
+            DATABASE_URL,
             conn_max_age=600,
             conn_health_checks=True,
         )
