@@ -19,6 +19,16 @@
 
 ---
 
+## 📸 Platform Screenshots & UI Showcase
+
+| 1. Customer Discovery & Dashboard | 2. Restaurant Menu & Live Cart |
+| :---: | :---: |
+| ![Customer Dashboard](screenshots/1_customer_dashboard.png) | ![Restaurant Menu](screenshots/2_restaurant_menu.png) |
+| **3. Customer Rating & Reviews** | **4. Live GPS Order Tracker** |
+| ![Customer Reviews](screenshots/3_customer_reviews.png) | ![Live Tracking](screenshots/4_live_order_tracking.png) |
+
+---
+
 ## 🔑 Demo Accounts & Showcase Credentials
 
 Recruiters and visitors can log in with any of the pre-configured role-based test accounts below to explore the distinct portals:
