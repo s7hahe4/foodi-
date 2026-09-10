@@ -179,7 +179,7 @@ Frontend will be accessible at: `http://localhost:5173`
 
 Developed by **Shahedul Islam**  
 - **GitHub**: [@s7hahe4](https://github.com/s7hahe4)  
-- **LinkedIn**: [Shahedul Islam](https://linkedin.com)  
+- **LinkedIn**: [Shahedul Islam](https://www.linkedin.com/in/shahedul-islam-shahed-64b111270)  
 - **Live Demo**: [https://foodi-olive.vercel.app](https://foodi-olive.vercel.app)
 
 *Licensed under the MIT License.*
