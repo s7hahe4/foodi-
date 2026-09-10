@@ -15,7 +15,7 @@ import AdminUserManager from './components/adminusermanager';
 
 // CUSTOMER APP IMPORTS
 import CustomerLayout from './components/customerlayout'; 
-import CustomerDashboard from './components/CustomerDashboard';
+import CustomerDashboard from './components/customerdashboard';
 import PublicMenu from './components/PublicMenu';
 import CustomerOrders from './components/customerorders';
 import CustomerOffers from './components/customeroffers';
@@ -26,7 +26,7 @@ import RiderDashboard from './components/riderdashboard';
 import RiderAccount from './components/rideraccount';
 
 import PaymentGateway from './components/paymentgateway';
-import OrderTracker from './components/OrderTracker';
+import OrderTracker from './components/ordertracker';
 import LogoutConfirmDialog from './components/LogoutConfirmDialog';
 
 // THE CART CONTEXT
