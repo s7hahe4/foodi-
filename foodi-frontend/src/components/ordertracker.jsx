@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { API, WS_URL } from '../api/client';
 import { generateOrderInvoicePDF } from '../utils/invoiceGenerator';
+import ReviewModal from './ReviewModal';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -78,6 +79,9 @@ const OrderTracker = () => {
     const [wsConnected, setWsConnected] = useState(false);
     const [lastWsEvent, setLastWsEvent] = useState(null);
     const wsRef = useRef(null);
+
+    // ⭐ Review State
+    const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchOrder = async () => {
@@ -520,7 +524,7 @@ const OrderTracker = () => {
                     </div>
                 </div>
 
-                {/* Live Telemetry Indicator & PDF Download */}
+                {/* Live Telemetry Indicator */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <div style={{
                         display: 'inline-flex',
@@ -719,9 +723,76 @@ const OrderTracker = () => {
                 <h2 style={{ color: hero.accent, margin: '0 0 6px', fontSize: '1.6rem', fontWeight: 800 }}>
                     {hero.title}
                 </h2>
-                <p style={{ color: '#475569', margin: '0 0 16px', fontSize: '0.96rem', maxWidth: '520px', marginLeft: 'auto', marginRight: 'auto' }}>
+                <p style={{ color: '#475569', margin: '0 0 12px', fontSize: '0.96rem', maxWidth: '520px', marginLeft: 'auto', marginRight: 'auto' }}>
                     {hero.subtitle}
                 </p>
+
+                {/* ⭐ Rating / Review Section on Delivered Order */}
+                {order.status === 'Delivered' && (
+                    <div style={{ marginTop: '14px' }}>
+                        {order.review_rating ? (
+                            <div style={{
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                background: '#ffffff',
+                                padding: '8px 18px',
+                                borderRadius: '20px',
+                                border: '1px solid #bbf7d0',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+                            }}>
+                                <span style={{ color: '#f59e0b', fontSize: '1.1rem' }}>
+                                    {'★'.repeat(order.review_rating)}{'☆'.repeat(5 - order.review_rating)}
+                                </span>
+                                <span style={{ fontSize: '0.86rem', fontWeight: 700, color: '#166534' }}>
+                                    You rated this order ({order.review_rating}/5)
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsReviewModalOpen(true)}
+                                    style={{
+                                        background: 'none',
+                                        border: 'none',
+                                        color: '#2563eb',
+                                        fontSize: '0.8rem',
+                                        fontWeight: 700,
+                                        cursor: 'pointer',
+                                        textDecoration: 'underline',
+                                        padding: '0 4px',
+                                        margin: 0,
+                                        width: 'auto'
+                                    }}
+                                >
+                                    Edit
+                                </button>
+                            </div>
+                        ) : (
+                            <button
+                                type="button"
+                                onClick={() => setIsReviewModalOpen(true)}
+                                style={{
+                                    background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                                    color: '#ffffff',
+                                    border: 'none',
+                                    padding: '10px 22px',
+                                    borderRadius: '12px',
+                                    fontWeight: 800,
+                                    fontSize: '0.92rem',
+                                    cursor: 'pointer',
+                                    boxShadow: '0 4px 14px rgba(245, 158, 11, 0.35)',
+                                    display: 'inline-flex',
+                                    alignItems: 'center',
+                                    gap: '8px',
+                                    margin: 0,
+                                    width: 'auto',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                <span>⭐</span> Rate Your Meal & Service
+                            </button>
+                        )}
+                    </div>
+                )}
 
                 {/* Live route estimate badge if active */}
                 {routeInfo && order.status === 'Out for Delivery' && (
@@ -735,7 +806,8 @@ const OrderTracker = () => {
                         boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
                         fontSize: '0.88rem',
                         fontWeight: 700,
-                        color: '#1e293b'
+                        color: '#1e293b',
+                        marginTop: '12px'
                     }}>
                         <span>🛵 Estimated Arrival: <strong style={{ color: '#2563eb' }}>~{routeInfo.durationMin} mins</strong></span>
                         <span>•</span>
@@ -1036,7 +1108,6 @@ const OrderTracker = () => {
                         <span style={{ fontSize: '0.8rem', color: '#64748b' }}>Verified Settlement</span>
                     </div>
 
-                    {/* PDF Download Button directly on receipt card */}
                     <button
                         onClick={() => {
                             generateOrderInvoicePDF(order);
@@ -1145,6 +1216,20 @@ const OrderTracker = () => {
                     <span>←</span> Return to All Orders
                 </button>
             </div>
+
+            {/* ⭐ Interactive Review Modal */}
+            <ReviewModal
+                isOpen={isReviewModalOpen}
+                onClose={() => setIsReviewModalOpen(false)}
+                order={order}
+                onReviewSubmitted={(newReview) => {
+                    setOrder(prev => ({
+                        ...prev,
+                        review_rating: newReview.rating,
+                        review_comment: newReview.comment
+                    }));
+                }}
+            />
 
         </div>
     );

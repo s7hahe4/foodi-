@@ -3,12 +3,14 @@ import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { API, WS_URL } from '../api/client';
 import { generateOrderInvoicePDF } from '../utils/invoiceGenerator';
+import ReviewModal from './ReviewModal';
 
 const CustomerOrders = () => {
     const navigate = useNavigate();
     const [orders, setOrders] = useState([]);
     const [loading, setLoading] = useState(true);
     const [filter, setFilter] = useState('all'); // 'all' | 'active' | 'completed'
+    const [reviewModalOrder, setReviewModalOrder] = useState(null);
 
     useEffect(() => {
         const fetchMyOrders = async () => {
@@ -493,7 +495,64 @@ const CustomerOrders = () => {
                                     </div>
 
                                     {/* Action CTA & Invoice Download */}
-                                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', alignItems: 'center' }}>
+                                        {/* Review / Rating button for Delivered Orders */}
+                                        {order.status === 'Delivered' && (
+                                            order.review_rating ? (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setReviewModalOrder(order)}
+                                                    style={{
+                                                        background: '#fffbeb',
+                                                        border: '1px solid #fef3c7',
+                                                        borderRadius: '10px',
+                                                        padding: '10px 14px',
+                                                        color: '#b45309',
+                                                        fontWeight: 700,
+                                                        fontSize: '0.86rem',
+                                                        cursor: 'pointer',
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        gap: '5px',
+                                                        width: 'auto',
+                                                        margin: 0,
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                    title="Click to view or update your review"
+                                                    onMouseEnter={(e) => { e.currentTarget.style.background = '#fef3c7'; }}
+                                                    onMouseLeave={(e) => { e.currentTarget.style.background = '#fffbeb'; }}
+                                                >
+                                                    <span style={{ color: '#f59e0b' }}>⭐</span> {order.review_rating}/5 Rated
+                                                </button>
+                                            ) : (
+                                                <button
+                                                    type="button"
+                                                    onClick={() => setReviewModalOrder(order)}
+                                                    style={{
+                                                        background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                                                        border: 'none',
+                                                        borderRadius: '10px',
+                                                        padding: '10px 16px',
+                                                        color: '#ffffff',
+                                                        fontWeight: 700,
+                                                        fontSize: '0.86rem',
+                                                        cursor: 'pointer',
+                                                        display: 'inline-flex',
+                                                        alignItems: 'center',
+                                                        gap: '6px',
+                                                        width: 'auto',
+                                                        margin: 0,
+                                                        boxShadow: '0 3px 10px rgba(245, 158, 11, 0.35)',
+                                                        transition: 'all 0.2s'
+                                                    }}
+                                                    onMouseEnter={(e) => { e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 5px 14px rgba(245, 158, 11, 0.45)'; }}
+                                                    onMouseLeave={(e) => { e.currentTarget.style.transform = 'none'; e.currentTarget.style.boxShadow = '0 3px 10px rgba(245, 158, 11, 0.35)'; }}
+                                                >
+                                                    <span>⭐</span> Rate Order
+                                                </button>
+                                            )
+                                        )}
+
                                         <button
                                             type="button"
                                             onClick={() => {
@@ -575,6 +634,26 @@ const CustomerOrders = () => {
                         );
                     })}
                 </div>
+            )}
+
+            {/* Review Submission Modal */}
+            {reviewModalOrder && (
+                <ReviewModal
+                    isOpen={Boolean(reviewModalOrder)}
+                    onClose={() => setReviewModalOrder(null)}
+                    restaurantId={reviewModalOrder.restaurant}
+                    restaurantName={reviewModalOrder.restaurant_name}
+                    orderId={reviewModalOrder.id}
+                    existingRating={reviewModalOrder.review_rating || 5}
+                    existingComment={reviewModalOrder.review_comment || ''}
+                    onSuccess={(newReview) => {
+                        setOrders(prev => prev.map(o => o.id === reviewModalOrder.id ? {
+                            ...o,
+                            review_rating: newReview.rating,
+                            review_comment: newReview.comment
+                        } : o));
+                    }}
+                />
             )}
 
         </div>

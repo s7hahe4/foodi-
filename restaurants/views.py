@@ -1,10 +1,11 @@
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import Restaurant
-from .serializers import RestaurantSerializer
+from .models import Restaurant, Review
+from .serializers import RestaurantSerializer, ReviewSerializer
 from users.permissions import IsSystemAdmin
 from django.shortcuts import get_object_or_404
+from menu.models import Order
 
 # --- ADMIN VIEWS ---
 
@@ -100,4 +101,63 @@ class PublicRestaurantDetailView(generics.RetrieveAPIView):
     """
     queryset = Restaurant.objects.filter(status='approved')
     serializer_class = RestaurantSerializer
-    permission_classes = [AllowAny]
+    permission_classes = [AllowAny]
+
+
+class RestaurantReviewListCreateView(generics.ListCreateAPIView):
+    """
+    GET: List all reviews for a restaurant.
+    POST: Authenticated customer submits a 1-5 star review for an order.
+    """
+    serializer_class = ReviewSerializer
+
+    def get_permissions(self):
+        if self.request.method == 'POST':
+            return [IsAuthenticated()]
+        return [AllowAny()]
+
+    def get_queryset(self):
+        restaurant_id = self.kwargs.get('pk')
+        return Review.objects.filter(restaurant_id=restaurant_id).order_by('-created_at')
+
+    def create(self, request, *args, **kwargs):
+        restaurant_id = self.kwargs.get('pk')
+        restaurant = get_object_or_404(Restaurant, id=restaurant_id)
+
+        rating = request.data.get('rating')
+        comment = request.data.get('comment', '').strip()
+        order_id = request.data.get('order_id')
+
+        try:
+            rating = int(rating)
+            if rating < 1 or rating > 5:
+                return Response({'error': 'Rating must be an integer between 1 and 5.'}, status=status.HTTP_400_BAD_REQUEST)
+        except (TypeError, ValueError):
+            return Response({'error': 'Valid rating (1-5) is required.'}, status=status.HTTP_400_BAD_REQUEST)
+
+        order = None
+        if order_id:
+            try:
+                order = Order.objects.get(id=order_id, customer=request.user)
+            except Order.DoesNotExist:
+                return Response({'error': 'Associated order not found or does not belong to you.'}, status=status.HTTP_404_NOT_FOUND)
+
+            # Check if this order was already reviewed
+            existing = Review.objects.filter(order=order).first()
+            if existing:
+                existing.rating = rating
+                existing.comment = comment
+                existing.save()
+                serializer = self.get_serializer(existing)
+                return Response(serializer.data, status=status.HTTP_200_OK)
+
+        review = Review.objects.create(
+            restaurant=restaurant,
+            customer=request.user,
+            order=order,
+            rating=rating,
+            comment=comment
+        )
+
+        serializer = self.get_serializer(review)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)

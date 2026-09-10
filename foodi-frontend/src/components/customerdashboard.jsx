@@ -124,8 +124,12 @@ const CustomerDashboard = () => {
     const filteredRestaurants = restaurants.filter(r => {
         if (hasDiscount && !r.active_offer_discount) return false;
         if (maxDelivery < r.delivery_fee) return false;
-        // Mock rating filter (since we don't have real ratings yet, we'll pretend all verified are 4.5+)
-        if (minRating > 0 && !r.is_verified) return false; 
+        
+        // Real rating filter
+        if (minRating > 0) {
+            const ratingVal = parseFloat(r.rating) || 0;
+            if (ratingVal < minRating) return false;
+        }
         
         // Category filtering logic
         if (selectedCategory === 'Current Offers' && !r.active_offer_discount) return false;
@@ -136,8 +140,8 @@ const CustomerDashboard = () => {
 
         return true;
     }).sort((a, b) => {
-        if (sortBy === 'Ratings') return b.is_verified ? 1 : -1;
-        if (sortBy === 'Popularity') return b.id - a.id; 
+        if (sortBy === 'Ratings') return (parseFloat(b.rating) || 0) - (parseFloat(a.rating) || 0);
+        if (sortBy === 'Popularity') return ((b.total_reviews || 0) - (a.total_reviews || 0)) || (b.id - a.id); 
         return 0; // Nearest (default order)
     });
 
@@ -420,7 +424,12 @@ const CustomerDashboard = () => {
 
                                         <div style={{ display: 'flex', alignItems: 'center', gap: '15px', fontSize: '0.9rem', color: '#2d3436' }}>
                                             <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontWeight: 'bold' }}>
-                                                <span style={{ color: '#f39c12' }}>★</span> {rest.is_verified ? '4.7' : 'New'}
+                                                <span style={{ color: '#f39c12' }}>★</span> {rest.rating && parseFloat(rest.rating) > 0 ? parseFloat(rest.rating).toFixed(1) : (rest.is_verified ? '4.5' : 'New')}
+                                                {rest.total_reviews > 0 && (
+                                                    <span style={{ fontSize: '0.78rem', color: '#636e72', fontWeight: 500, marginLeft: '2px' }}>
+                                                        ({rest.total_reviews})
+                                                    </span>
+                                                )}
                                             </span>
                                             <span style={{ color: '#b2bec3' }}>|</span>
                                             <span style={{ display: 'flex', alignItems: 'center', gap: '5px' }}>

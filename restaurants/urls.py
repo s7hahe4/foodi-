@@ -5,6 +5,7 @@ from .views import (
     RestaurantProfileView,
     PublicRestaurantListView,
     PublicRestaurantDetailView,
+    RestaurantReviewListCreateView,
 )
 
 urlpatterns = [
@@ -15,7 +16,9 @@ urlpatterns = [
     # Owner route
     path('profile/', RestaurantProfileView.as_view(), name='restaurant-profile'),
 
-    # Customer feed routes
+    # Customer feed & reviews routes
     path('feed/', PublicRestaurantListView.as_view(), name='public-restaurant-feed'),
     path('feed/<int:pk>/', PublicRestaurantDetailView.as_view(), name='public-restaurant-detail'),
+    path('feed/<int:pk>/reviews/', RestaurantReviewListCreateView.as_view(), name='restaurant-reviews'),
+    path('<int:pk>/reviews/', RestaurantReviewListCreateView.as_view(), name='restaurant-reviews-direct'),
 ]

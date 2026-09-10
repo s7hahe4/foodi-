@@ -48,6 +48,8 @@ class OrderSerializer(serializers.ModelSerializer):
 
     rider_username = serializers.ReadOnlyField(source='rider.username')
     rider_phone = serializers.ReadOnlyField(source='rider.phone_number')
+    review_rating = serializers.SerializerMethodField()
+    review_comment = serializers.SerializerMethodField()
 
     class Meta:
         model = Order
@@ -56,9 +58,16 @@ class OrderSerializer(serializers.ModelSerializer):
             'restaurant_name', 'total_price', 'delivery_fee', 'status', 'items', 'created_at',
             'delivery_lat', 'delivery_lng', 'restaurant_lat', 'restaurant_lng',
             'rider_lat', 'rider_lng',
-            'rider', 'rider_username', 'rider_phone'
+            'rider', 'rider_username', 'rider_phone',
+            'review_rating', 'review_comment'
         ]
         read_only_fields = ['customer', 'restaurant', 'total_price', 'created_at']
+
+    def get_review_rating(self, obj):
+        return obj.review.rating if hasattr(obj, 'review') and obj.review else None
+
+    def get_review_comment(self, obj):
+        return obj.review.comment if hasattr(obj, 'review') and obj.review else None
 
 
 class OwnerOfferSerializer(serializers.ModelSerializer):

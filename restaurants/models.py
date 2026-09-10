@@ -48,5 +48,36 @@ class Restaurant(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def update_rating(self):
+        """Recalculate average rating and total orders based on reviews"""
+        avg = self.reviews.aggregate(models.Avg('rating'))['rating__avg']
+        self.rating = round(avg, 1) if avg is not None else 0.0
+        self.save(update_fields=['rating'])
+
     def __str__(self):
         return f"{self.name} ({self.get_status_display()})"
+
+
+class Review(models.Model):
+    restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='reviews')
+    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='reviews')
+    order = models.OneToOneField('menu.Order', on_delete=models.SET_NULL, null=True, blank=True, related_name='review')
+    rating = models.PositiveSmallIntegerField(choices=[(i, i) for i in range(1, 6)])  # 1 to 5 stars
+    comment = models.TextField(blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        # Automatically update restaurant rating
+        self.restaurant.update_rating()
+
+    def delete(self, *args, **kwargs):
+        restaurant = self.restaurant
+        super().delete(*args, **kwargs)
+        restaurant.update_rating()
+
+    def __str__(self):
+        return f"{self.customer.username} on {self.restaurant.name} ({self.rating}★)"
