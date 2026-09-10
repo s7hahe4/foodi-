@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { toast } from 'sonner';
+import { API } from '../api/client';
 
 const AdminRestaurantManager = () => {
     const [restaurants, setRestaurants] = useState([]);
@@ -7,7 +9,7 @@ const AdminRestaurantManager = () => {
     const fetchRestaurants = async () => {
         const token = localStorage.getItem('access_token');
         try {
-            const res = await fetch('http://127.0.0.1:8000/api/users/admin/list/', {
+            const res = await fetch(`${API}/api/users/admin/list/`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
@@ -27,7 +29,7 @@ const AdminRestaurantManager = () => {
 
     const updateStatus = async (id, newStatus) => {
         const token = localStorage.getItem('access_token');
-        const url = `http://127.0.0.1:8000/api/users/admin/approve/${id}/`;
+        const url = `${API}/api/users/admin/approve/${id}/`;
 
         console.log(`Attempting to set status="${newStatus}" on restaurant ID: ${id}`);
 
@@ -54,11 +56,11 @@ const AdminRestaurantManager = () => {
                 );
             } else {
                 console.error('Server Error:', data);
-                alert('Error: ' + (data.error || 'Could not update status.'));
+                toast.error('Error: ' + (data.error || 'Could not update status.'));
             }
         } catch (err) {
             console.error('Network Error:', err);
-            alert('Network error: Is the Django server running?');
+            toast.error('Network error: Is the Django server running?');
         }
     };
 

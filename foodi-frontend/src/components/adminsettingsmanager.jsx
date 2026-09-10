@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API } from '../api/client';
 
 const AdminSettingsManager = () => {
     const [promoText, setPromoText] = useState('');
@@ -9,7 +10,7 @@ const AdminSettingsManager = () => {
         const fetchSettings = async () => {
             const token = localStorage.getItem('access_token');
             try {
-                const res = await fetch('http://127.0.0.1:8000/api/admin/settings/', {
+                const res = await fetch(`${API}/api/admin/settings/`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -28,7 +29,7 @@ const AdminSettingsManager = () => {
         setMessage('');
         const token = localStorage.getItem('access_token');
         try {
-            const res = await fetch('http://127.0.0.1:8000/api/admin/settings/', {
+            const res = await fetch(`${API}/api/admin/settings/`, {
                 method: 'PUT',
                 headers: { 
                     'Authorization': `Bearer ${token}`,

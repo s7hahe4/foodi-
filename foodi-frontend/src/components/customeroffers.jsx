@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { API } from '../api/client';
 
 const CustomerOffers = () => {
     const [offers, setOffers] = useState([]);
@@ -9,7 +10,7 @@ const CustomerOffers = () => {
         const fetchOffers = async () => {
             try {
                 // Public endpoint, no auth required
-                const res = await fetch('http://127.0.0.1:8000/api/menu/offers/public/');
+                const res = await fetch(`${API}/api/menu/offers/public/`);
                 if (res.ok) {
                     const data = await res.json();
                     setOffers(data.results || data);

@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API } from '../api/client';
 
 const MOOD_OPTIONS = [
     { label: '🌶️ Spicy', value: 'Spicy' },
@@ -86,7 +87,7 @@ const FloatingChatbot = () => {
         }, 300);
 
         try {
-            let url = `http://127.0.0.1:8000/api/menu/recommend/?mood=${encodeURIComponent(selectedMood)}&budget=${selectedBudget}`;
+            let url = `${API}/api/menu/recommend/?mood=${encodeURIComponent(selectedMood)}&budget=${selectedBudget}`;
             if (!isNoLimit && calorieLimit) {
                 url += `&max_calories=${calorieLimit}`;
             }

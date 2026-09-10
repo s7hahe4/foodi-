@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { API } from '../api/client';
 import { useCart } from './cartcontext';
 import './PublicMenu.css';
 
@@ -21,8 +23,8 @@ const PublicMenu = () => {
         const fetchData = async () => {
             try {
                 const [resRest, resMenu] = await Promise.all([
-                    fetch(`http://127.0.0.1:8000/api/restaurants/feed/${id}/`),
-                    fetch(`http://127.0.0.1:8000/api/menu/public/${id}/`)
+                    fetch(`${API}/api/restaurants/feed/${id}/`),
+                    fetch(`${API}/api/menu/public/${id}/`)
                 ]);
                 if (resRest.ok) setRestaurant(await resRest.json());
                 if (resMenu.ok) {
@@ -81,7 +83,7 @@ const PublicMenu = () => {
     // ── Checkout ─────────────────────────────────
     const handleGoToCheckout = () => {
         if (!localStorage.getItem('access_token')) {
-            alert('Please login to place an order!');
+            toast.error('Please login to place an order!');
             navigate('/login');
             return;
         }

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { API } from '../api/client';
 
 const AdminUserManager = () => {
     const [users, setUsers] = useState([]);
@@ -7,7 +8,7 @@ const AdminUserManager = () => {
 
     const fetchUsers = async () => {
         const token = localStorage.getItem('access_token');
-        let url = `http://127.0.0.1:8000/api/users/admin/users/?role=${roleFilter}&search=${searchTerm}`;
+        let url = `${API}/api/users/admin/users/?role=${roleFilter}&search=${searchTerm}`;
         
         const res = await fetch(url, {
             headers: { 'Authorization': `Bearer ${token}` }
@@ -20,7 +21,7 @@ const AdminUserManager = () => {
 
     const toggleStatus = async (id) => {
         const token = localStorage.getItem('access_token');
-        const res = await fetch(`http://127.0.0.1:8000/api/users/admin/users/${id}/toggle/`, {
+        const res = await fetch(`${API}/api/users/admin/users/${id}/toggle/`, {
             method: 'PATCH',
             headers: { 'Authorization': `Bearer ${token}` }
         });

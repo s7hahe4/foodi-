@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { API } from '../api/client';
 import MapSelector from './MapSelector';
 import { useCart } from './cartcontext';
 
@@ -33,7 +35,7 @@ const CustomerDashboard = () => {
     const fetchFeed = async () => {
         setLoading(true);
         try {
-            const res = await fetch('http://127.0.0.1:8000/api/restaurants/feed/');
+            const res = await fetch(`${API}/api/restaurants/feed/`);
             if (res.ok) {
                 const data = await res.json();
                 setRestaurants(data.results || data);
@@ -47,7 +49,7 @@ const CustomerDashboard = () => {
 
     const fetchPromoText = async () => {
         try {
-            const res = await fetch('http://127.0.0.1:8000/api/admin/settings/public/', {
+            const res = await fetch(`${API}/api/admin/settings/public/`, {
                 cache: 'no-store' // Fix: prevent browser from caching the old promo text
             });
             if (res.ok) {
@@ -84,7 +86,7 @@ const CustomerDashboard = () => {
 
         const delayDebounceFn = setTimeout(async () => {
             try {
-                const res = await fetch(`http://127.0.0.1:8000/api/menu/feed/?search=${encodeURIComponent(searchQuery)}`);
+                const res = await fetch(`${API}/api/menu/feed/?search=${encodeURIComponent(searchQuery)}`);
                 if (res.ok) {
                     const data = await res.json();
                     setSearchResults(data.results || data);
@@ -305,8 +307,8 @@ const CustomerDashboard = () => {
                                                 </div>
                                                 <button 
                                                     onClick={() => {
-                                                        addToCart({ ...item, restaurant: item.restaurant }); // ensure restaurant id is carried
-                                                        alert(`${item.name} added to cart!`);
+                                                        addToCart({ ...item, restaurant: item.restaurant });
+                                                        toast.success(`${item.name} added to cart! 🛍️`);
                                                     }}
                                                     style={{ background: '#2ecc71', color: 'white', border: 'none', padding: '8px 15px', borderRadius: '6px', fontWeight: 'bold', cursor: 'pointer' }}
                                                 >

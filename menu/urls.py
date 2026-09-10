@@ -19,9 +19,12 @@ from .views import (
     ConfirmPaymentView,
     BotRecommendationView,
     RiderStatsView,
+    OrderSimulationView,
 )
 
 urlpatterns = [
+    # --- Live Demo Simulation Endpoint (Interview Showcase) ---
+    path('orders/simulate/<int:pk>/', OrderSimulationView.as_view(), name='simulate-order'),
     # --- Menu Management ---
     path('manage/', OwnerMenuListCreateView.as_view(), name='owner-menu-list-create'),
     path('manage/<int:pk>/', OwnerMenuDetailView.as_view(), name='owner-menu-detail'),

@@ -1,5 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'sonner';
+import { API, WS_URL } from '../api/client';
 import { MapContainer, TileLayer, Marker, Popup, Polyline, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -73,7 +75,7 @@ const RiderOrderCard = ({ order, activeTab, onAccept, onComplete, onRefresh, rid
     useEffect(() => {
         if (activeTab !== 'mine') return;
 
-        const ws = new WebSocket(`ws://127.0.0.1:8000/ws/orders/track/${order.id}/`);
+        const ws = new WebSocket(`${WS_URL}/ws/orders/track/${order.id}/`);
         wsRef.current = ws;
 
         ws.onopen = () => {
@@ -338,8 +340,8 @@ const RiderDashboard = () => {
         }
 
         const endpoint = activeTab === 'available' 
-            ? 'http://127.0.0.1:8000/api/menu/orders/rider/available/' 
-            : 'http://127.0.0.1:8000/api/menu/orders/rider/my-deliveries/';
+            ? `${API}/api/menu/orders/rider/available/` 
+            : `${API}/api/menu/orders/rider/my-deliveries/`;
 
         try {
             const res = await fetch(endpoint, {
@@ -404,15 +406,15 @@ const RiderDashboard = () => {
     const handleAcceptOrder = async (orderId) => {
         const token = localStorage.getItem('access_token');
         try {
-            const res = await fetch(`http://127.0.0.1:8000/api/menu/orders/rider/accept/${orderId}/`, {
+            const res = await fetch(`${API}/api/menu/orders/rider/accept/${orderId}/`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
-                alert("Order Accepted! Drive safe.");
+                toast.success('Order Accepted! 📦 Drive safe.');
                 fetchOrders();
             } else {
-                alert("Failed to accept order. Someone else might have taken it!");
+                toast.error('Failed to accept order. Someone else might have taken it!');
             }
         } catch (err) {
             console.error("Error accepting order", err);
@@ -422,15 +424,15 @@ const RiderDashboard = () => {
     const handleCompleteDelivery = async (orderId) => {
         const token = localStorage.getItem('access_token');
         try {
-            const res = await fetch(`http://127.0.0.1:8000/api/menu/orders/rider/complete/${orderId}/`, {
+            const res = await fetch(`${API}/api/menu/orders/rider/complete/${orderId}/`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
-                alert("Delivery Completed! Great job.");
+                toast.success('Delivery Completed! 🎉 Great job.');
                 fetchOrders();
             } else {
-                alert("Failed to complete delivery.");
+                toast.error('Failed to complete delivery.');
             }
         } catch (err) {
             console.error("Error completing delivery", err);

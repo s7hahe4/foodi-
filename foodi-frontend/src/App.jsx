@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Link, useNavigate, useLocation, Navigate } from 'react-router-dom';
+import { Toaster, toast } from 'sonner';
+import { API } from './api/client';
 
 // --- ALL COMPONENT IMPORTS ---
 import Login from './components/login';
@@ -25,6 +27,7 @@ import RiderAccount from './components/rideraccount';
 
 import PaymentGateway from './components/paymentgateway';
 import OrderTracker from './components/OrderTracker';
+import LogoutConfirmDialog from './components/LogoutConfirmDialog';
 
 // THE CART CONTEXT
 import { CartProvider } from './components/cartcontext'; 
@@ -51,16 +54,15 @@ const AuthEnforcer = ({ children }) => {
       if (!token) return;
 
       try {
-        const res = await fetch('http://127.0.0.1:8000/api/users/profile/', {
+        const res = await fetch(`${API}/api/users/profile/`, {
           headers: { 'Authorization': `Bearer ${token}` }
         });
 
         if (res.ok) {
           const userData = await res.json();
           if (userData.is_restricted) {
-            alert(`🚫 ACCESS DENIED\n\n${userData.restriction_reason || "Your account is restricted. Contact Admin."}`);
-            localStorage.clear();
-            navigate('/login');
+            toast.error(`🚫 Access Denied: ${userData.restriction_reason || 'Your account is restricted. Contact Admin.'}`, { duration: 6000 });
+            setTimeout(() => { localStorage.clear(); navigate('/login'); }, 2000);
           }
         } else if (res.status === 401) {
           localStorage.clear();
@@ -79,7 +81,52 @@ const AuthEnforcer = ({ children }) => {
   return children;
 };
 
-const Navbar = () => {
+const MainPageBackGuard = ({ onOpenLogout }) => {
+  const location = useLocation();
+
+  useEffect(() => {
+    const isLoggedIn = !!localStorage.getItem('access_token');
+    // Main dashboards & account pages across Customer, Owner, Rider, and Admin
+    const mainRoutes = [
+      '/',
+      '/account',
+      '/owner-dashboard',
+      '/rider-dashboard',
+      '/rider-dashboard/account',
+      '/admin-panel'
+    ];
+    const isMainPage = mainRoutes.includes(location.pathname);
+
+    if (!isLoggedIn || !isMainPage) return;
+
+    // Push dummy history entry so browser back button triggers popstate
+    window.history.pushState({ page: 'foodi_main_page_guard' }, '', window.location.href);
+
+    const handlePopState = () => {
+      // Re-push immediately so URL stays on current page
+      window.history.pushState({ page: 'foodi_main_page_guard' }, '', window.location.href);
+
+      // Trigger notification & modal
+      toast.warning('Do you want to log out?', {
+        description: 'You clicked the back button from the main page.',
+        duration: 4000
+      });
+      onOpenLogout({
+        title: 'Do you want to log out?',
+        message: 'You clicked the browser back button. Would you like to log out of your Foodi++ account or stay on this page?'
+      });
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [location.pathname, onOpenLogout]);
+
+  return null;
+};
+
+const Navbar = ({ onOpenLogout }) => {
   const location = useLocation();
   const isLoggedIn = !!localStorage.getItem('access_token');
 
@@ -92,11 +139,6 @@ const Navbar = () => {
   };
   const userRole = localStorage.getItem('user_role') || 'customer';
   const homeRoute = isLoggedIn ? (roleHomeMap[userRole] || '/') : '/';
-
-  const handleLogout = () => {
-    localStorage.clear();
-    window.location.href = '/login';
-  };
 
   // Determine if we should show the buttons based on current route
   const isLoginPage    = location.pathname === '/login';
@@ -116,7 +158,10 @@ const Navbar = () => {
           </div>
         ) : (
           <button
-            onClick={handleLogout}
+            onClick={() => onOpenLogout({
+              title: 'Confirm Logout',
+              message: 'Are you sure you want to log out of your Foodi++ session?'
+            })}
             style={{ background: 'transparent', color: 'white', border: '1px solid white', padding: '6px 15px', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold' }}
           >
             Logout
@@ -128,19 +173,57 @@ const Navbar = () => {
 };
 
 function App() {
+  const [logoutModalConfig, setLogoutModalConfig] = useState({
+    isOpen: false,
+    title: 'Do you want to log out?',
+    message: 'Are you sure you want to log out of your Foodi++ account?'
+  });
+
+  const openLogoutModal = (custom = {}) => {
+    setLogoutModalConfig({
+      isOpen: true,
+      title: custom.title || 'Do you want to log out?',
+      message: custom.message || 'Are you sure you want to log out of your Foodi++ account or stay on this page?'
+    });
+  };
+
+  const closeLogoutModal = () => {
+    setLogoutModalConfig(prev => ({ ...prev, isOpen: false }));
+  };
+
+  useEffect(() => {
+    window.openFoodiLogoutModal = openLogoutModal;
+    return () => {
+      delete window.openFoodiLogoutModal;
+    };
+  }, []);
+
+  const confirmLogout = () => {
+    localStorage.clear();
+    window.location.href = '/login';
+  };
+
   return (
     <CartProvider>
       <Router>
         <AuthEnforcer>
-          <Navbar />
+          <Toaster position="top-right" richColors closeButton />
+          <MainPageBackGuard onOpenLogout={openLogoutModal} />
+          <Navbar onOpenLogout={openLogoutModal} />
+          <LogoutConfirmDialog
+            isOpen={logoutModalConfig.isOpen}
+            title={logoutModalConfig.title}
+            message={logoutModalConfig.message}
+            onConfirm={confirmLogout}
+            onCancel={closeLogoutModal}
+          />
           <Routes>
             {/* Auth routes (Public) */}
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
 
-            {/* Restaurant Owner Routes (Should be protected too, but leaving as is for now) */}
-            <Route path="/owner-dashboard/setup" element={<div className="container"><RestaurantSetup /></div>} />
             <Route path="/owner-dashboard" element={<OwnerDashboard />} />
+            <Route path="/owner-dashboard/setup" element={<RestaurantSetup />} />
             <Route path="/owner-dashboard/menu" element={<MenuManagement />} />
             <Route path="/owner-dashboard/offers" element={<OwnerOfferManager />} />
 

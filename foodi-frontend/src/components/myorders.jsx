@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { API } from '../api/client';
 
 const MyOrders = () => {
     const [orders, setOrders] = useState([]);
@@ -8,7 +9,7 @@ const MyOrders = () => {
     useEffect(() => {
         const fetchOrders = async () => {
             try {
-                const res = await fetch('http://127.0.0.1:8000/api/menu/orders/my/', {
+                const res = await fetch(`${API}/api/menu/orders/my/`, {
                     headers: { 'Authorization': `Bearer ${localStorage.getItem('access_token')}` }
                 });
                 if (res.ok) {

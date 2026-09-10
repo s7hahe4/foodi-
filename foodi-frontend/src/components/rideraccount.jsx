@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
+import { API as BASE_URL } from '../api/client';
 
 // ── Tiny shared helpers ───────────────────────────────────────────────────────
-const API = 'http://127.0.0.1:8000/api';
+// Local alias: this file's paths are relative to /api (e.g. ${API}/users/...)
+const API = `${BASE_URL}/api`;
 const authHeaders = () => ({
     'Content-Type': 'application/json',
     Authorization: `Bearer ${localStorage.getItem('access_token')}`,
@@ -487,9 +489,16 @@ const RiderAccount = () => {
     useEffect(() => { fetchAll(); }, []);
 
     const handleLogout = () => {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        navigate('/login');
+        if (window.openFoodiLogoutModal) {
+            window.openFoodiLogoutModal({
+                title: 'Log out of Rider Account?',
+                message: 'Are you sure you want to log out of your Foodi++ Courier portal?'
+            });
+        } else {
+            localStorage.removeItem('access_token');
+            localStorage.removeItem('refresh_token');
+            navigate('/login');
+        }
     };
 
     const TABS = [

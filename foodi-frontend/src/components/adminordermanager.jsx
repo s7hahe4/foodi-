@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API } from '../api/client';
 
 const AdminOrderManager = () => {
     const [orders, setOrders] = useState([]);
@@ -11,7 +12,7 @@ const AdminOrderManager = () => {
                 const token = localStorage.getItem('access_token');
                 console.log("Admin Token:", token ? "Exists" : "Missing!");
 
-                const res = await fetch('http://127.0.0.1:8000/api/admin/orders/', {
+                const res = await fetch(`${API}/api/admin/orders/`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 

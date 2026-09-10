@@ -1,33 +1,35 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
+import { API } from '../api/client';
 import authBg1 from '../assets/auth-bg.png';
 import authBg2 from '../assets/auth-bg-2.png';
 import authBg3 from '../assets/auth-bg-3.png';
 
 const bgImages = [authBg1, authBg2, authBg3];
 
+
+
 const Login = () => {
     const [bgIndex, setBgIndex] = useState(0);
     const [credentials, setCredentials] = useState({ username: '', password: '' });
-    const [loading, setLoading] = useState(false); // Prevents double-login clicks
+    const [loading, setLoading] = useState(false);
 
     useEffect(() => {
         const interval = setInterval(() => {
             setBgIndex((prev) => (prev + 1) % bgImages.length);
-        }, 5000); // Change image every 5 seconds
+        }, 5000);
         return () => clearInterval(interval);
     }, []);
 
-    const handleLogin = async (e) => {
-        e.preventDefault();
+    const doLogin = async (username, password) => {
         setLoading(true);
-
         try {
-            // Step 1: Get the JWT Tokens
-            const response = await fetch('http://127.0.0.1:8000/api/users/login/', {
+            // Step 1: Get JWT Tokens
+            const response = await fetch(`${API}/api/users/login/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(credentials)
+                body: JSON.stringify({ username, password })
             });
             const tokenData = await response.json();
 
@@ -36,56 +38,55 @@ const Login = () => {
                 localStorage.setItem('refresh_token', tokenData.refresh);
 
                 // Step 2: Fetch Profile to get Role and Onboarding status
-                const profileResponse = await fetch('http://127.0.0.1:8000/api/users/profile/', {
-                    headers: {
-                        'Authorization': `Bearer ${tokenData.access}`
-                    }
+                const profileResponse = await fetch(`${API}/api/users/profile/`, {
+                    headers: { 'Authorization': `Bearer ${tokenData.access}` }
                 });
                 const profileData = await profileResponse.json();
 
-                // Step 3: Smart Redirection Logic (Using window.location.href to force refresh)
-                if (profileData.role === 'admin') {
-                    localStorage.setItem('user_role', 'admin');
-                    window.location.href = '/admin-panel';
-                }
-                else if (profileData.role === 'owner') {
-                    localStorage.setItem('user_role', 'owner');
-                    // Check if restaurant is already set up
-                    if (profileData.has_restaurant === false) {
-                        window.location.href = '/owner-dashboard/setup';
-                    } else {
-                        window.location.href = '/owner-dashboard';
-                    }
-                }
-                else if (profileData.role === 'rider') {
-                    localStorage.setItem('user_role', 'rider');
-                    window.location.href = '/rider-dashboard';
-                }
-                else {
-                    localStorage.setItem('user_role', 'customer');
-                    // Route customers to the root landing page (Customer Dashboard)
-                    window.location.href = '/';
-                }
+                toast.success(`Welcome back, ${profileData.username}! 🎉`);
 
-                console.log("Login Success:", profileData.username);
+                // Step 3: Smart Redirection Logic
+                setTimeout(() => {
+                    if (profileData.role === 'admin') {
+                        localStorage.setItem('user_role', 'admin');
+                        window.location.href = '/admin-panel';
+                    } else if (profileData.role === 'owner') {
+                        localStorage.setItem('user_role', 'owner');
+                        window.location.href = profileData.has_restaurant === false ? '/owner-dashboard/setup' : '/owner-dashboard';
+                    } else if (profileData.role === 'rider') {
+                        localStorage.setItem('user_role', 'rider');
+                        window.location.href = '/rider-dashboard';
+                    } else {
+                        localStorage.setItem('user_role', 'customer');
+                        window.location.href = '/';
+                    }
+                }, 800);
             } else {
-                alert("Invalid username or password. Please try again.");
+                toast.error('Invalid username or password. Please try again.');
             }
         } catch (error) {
-            console.error("Login error:", error);
-            alert("Connection to server failed. Make sure Django is running!");
+            console.error('Login error:', error);
+            toast.error('Connection to server failed. Make sure Django is running!');
         } finally {
-            setLoading(false); // Stop loading regardless of success or failure
+            setLoading(false);
         }
     };
 
+    const handleLogin = (e) => {
+        e.preventDefault();
+        doLogin(credentials.username, credentials.password);
+    };
+
+
     return (
-        <div className="auth-wrapper">
-            <div className="auth-left-pane" style={{ backgroundImage: `url(${bgImages[bgIndex]})`, transition: 'background-image 1.5s ease-in-out' }}>
-                {/* Left side image area */}
-            </div>
-            
-            <div className="auth-right-pane">
+        <div 
+            className="auth-wrapper" 
+            style={{ 
+                backgroundImage: `url(${bgImages[bgIndex]})`, 
+                transition: 'background-image 1.5s ease-in-out' 
+            }}
+        >
+            <div className="auth-overlay">
                 <div className="auth-card">
                     <h2>Welcome Back</h2>
                     <p className="auth-subtitle">Sign in to your Foodi++ account to continue.</p>
@@ -99,6 +100,7 @@ const Login = () => {
                                 placeholder="Enter your username"
                                 required
                                 disabled={loading}
+                                value={credentials.username}
                                 onChange={(e) => setCredentials({ ...credentials, username: e.target.value })}
                             />
                         </div>
@@ -111,12 +113,13 @@ const Login = () => {
                                 placeholder="Enter your password"
                                 required
                                 disabled={loading}
+                                value={credentials.password}
                                 onChange={(e) => setCredentials({ ...credentials, password: e.target.value })}
                             />
                         </div>
                         
                         <button type="submit" className="auth-btn" disabled={loading}>
-                            {loading ? "Logging in..." : "Login"}
+                            {loading ? 'Logging in...' : 'Login'}
                         </button>
                     </form>
                     
@@ -129,4 +132,4 @@ const Login = () => {
     );
 };
 
-export default Login;
+export default Login;

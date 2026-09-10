@@ -98,15 +98,20 @@ button:hover {
   background-color: #d35400;
 }
 
-/* NEW FORMAL AUTH LAYOUT */
+/* MODERN CENTERED AUTH LAYOUT */
 .auth-wrapper {
   display: flex;
-  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  min-height: calc(100vh - 65px);
   width: 100vw;
-  background-color: #0f172a; /* Deep Slate */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  position: relative;
   font-family: 'Inter', 'Segoe UI', sans-serif;
   overflow: hidden;
-  margin-left: calc(-50vw + 50%); /* Full width hack since #root has max width */
+  margin-left: calc(-50vw + 50%);
 }
 
 /* Ensure the full width hack works perfectly */
@@ -116,52 +121,34 @@ button:hover {
   border-inline: none;
 }
 
-.auth-left-pane {
-  flex: 1;
-  display: none;
-  background-size: cover;
-  background-position: center;
-  position: relative;
-}
-
-@media (min-width: 900px) {
-  .auth-left-pane {
-    display: block;
-  }
-}
-
-.auth-left-pane::after {
-  content: "";
-  position: absolute;
-  top: 0; right: 0; bottom: 0; left: 0;
-  background: linear-gradient(to right, rgba(15, 23, 42, 0.2), rgba(15, 23, 42, 1));
-}
-
-.auth-right-pane {
-  flex: 1;
+.auth-overlay {
+  width: 100%;
+  min-height: calc(100vh - 65px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 40px 20px;
-  background-color: #0f172a;
+  background: radial-gradient(circle at center, rgba(15, 23, 42, 0.75) 0%, rgba(15, 23, 42, 0.92) 100%);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  box-sizing: border-box;
 }
 
 .auth-card {
   width: 100%;
-  max-width: 440px;
-  background: rgba(255, 255, 255, 0.03);
-  backdrop-filter: blur(20px);
-  -webkit-backdrop-filter: blur(20px);
-  padding: 50px 40px;
+  max-width: 480px;
+  background: rgba(26, 35, 53, 0.88);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  padding: 44px 38px;
   border-radius: 20px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-  animation: fadeUp 0.6s ease-out forwards;
-  margin-bottom: 12vh; /* Shift the card up */
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 25px 60px -12px rgba(0, 0, 0, 0.7);
+  animation: fadeUp 0.5s ease-out forwards;
 }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(20px); }
+  from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
@@ -171,12 +158,14 @@ button:hover {
   margin-bottom: 8px;
   font-weight: 700;
   letter-spacing: -0.5px;
+  text-align: center;
 }
 
 .auth-subtitle {
   color: #94a3b8;
-  font-size: 0.95rem;
-  margin-bottom: 30px;
+  font-size: 0.96rem;
+  margin-bottom: 28px;
+  text-align: center;
 }
 
 .auth-input-group {
@@ -188,28 +177,28 @@ button:hover {
   display: block;
   color: #cbd5e1;
   margin-bottom: 8px;
-  font-size: 0.9rem;
+  font-size: 0.92rem;
   font-weight: 500;
 }
 
 .auth-input {
   width: 100%;
-  background: rgba(15, 23, 42, 0.6);
+  background: rgba(15, 23, 42, 0.7);
   border: 1px solid #334155;
   color: #f8fafc;
   padding: 14px 16px;
   border-radius: 10px;
-  font-size: 1rem;
-  transition: all 0.3s ease;
+  font-size: 1.02rem;
+  transition: all 0.25s ease;
   box-sizing: border-box;
-  margin: 0; /* Override generic margins */
+  margin: 0;
 }
 
 .auth-input:focus {
   outline: none;
-  border-color: #e67e22; /* Gold/Orange accent */
-  box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.15);
-  background: rgba(15, 23, 42, 0.8);
+  border-color: #e67e22;
+  box-shadow: 0 0 0 3px rgba(230, 126, 34, 0.2);
+  background: rgba(15, 23, 42, 0.9);
 }
 
 .auth-input::placeholder {

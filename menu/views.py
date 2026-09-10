@@ -361,6 +361,63 @@ class CompleteDeliveryView(APIView):
         return Response(OrderSerializer(order).data, status=status.HTTP_200_OK)
 
 
+class OrderSimulationView(APIView):
+    """
+    Live Demo Simulator endpoint:
+    Allows progressing an order's lifecycle for portfolio showcases and interviews.
+    Supported actions:
+    - 'advance': moves to the next stage (Pending -> Preparing -> Ready -> Out for Delivery -> Delivered)
+    - 'set_status': explicitly set status
+    - 'reset': resets status back to 'Pending' so the demo can be replayed
+    Broadcasts real-time events over Django Channels WebSockets to f'order_{order.id}'.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk):
+        order = get_object_or_404(Order, pk=pk)
+        action = request.data.get('action', 'advance')
+        target_status = request.data.get('status')
+
+        stage_sequence = ['Pending', 'Preparing', 'Ready', 'Out for Delivery', 'Delivered']
+
+        if action == 'reset':
+            order.status = 'Pending'
+            order.rider = None
+            order.rider_lat = None
+            order.rider_lng = None
+            order.save()
+        elif action == 'set_status' and target_status in stage_sequence:
+            order.status = target_status
+            if target_status == 'Out for Delivery' and not order.rider:
+                rider_user = User.objects.filter(role='rider').first()
+                if rider_user:
+                    order.rider = rider_user
+            order.save()
+        elif action == 'advance':
+            current_idx = stage_sequence.index(order.status) if order.status in stage_sequence else 0
+            if current_idx < len(stage_sequence) - 1:
+                next_status = stage_sequence[current_idx + 1]
+                order.status = next_status
+                if next_status == 'Out for Delivery' and not order.rider:
+                    rider_user = User.objects.filter(role='rider').first()
+                    if rider_user:
+                        order.rider = rider_user
+                order.save()
+
+        # Broadcast real-time status update via WebSocket channel group
+        channel_layer = get_channel_layer()
+        if channel_layer:
+            async_to_sync(channel_layer.group_send)(
+                f'order_{order.id}',
+                {
+                    'type': 'order_status_update',
+                    'status': order.status
+                }
+            )
+
+        return Response(OrderSerializer(order).data, status=status.HTTP_200_OK)
+
+
 class RiderStatsView(APIView):
     """Returns aggregated stats + full delivery history for the logged-in rider."""
     permission_classes = [IsAuthenticated]

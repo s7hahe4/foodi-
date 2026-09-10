@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { toast } from 'sonner';
+import { API } from '../api/client';
 
 const OwnerOfferManager = () => {
     const [offers, setOffers] = useState([]);
@@ -9,9 +11,10 @@ const OwnerOfferManager = () => {
 
     const token = localStorage.getItem('access_token');
 
+
     const fetchOffers = async () => {
         try {
-            const res = await fetch('http://127.0.0.1:8000/api/menu/offers/manage/', {
+            const res = await fetch(`${API}/api/menu/offers/manage/`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             if (res.ok) {
@@ -37,7 +40,7 @@ const OwnerOfferManager = () => {
         e.preventDefault();
         setIsSubmitting(true);
         try {
-            const res = await fetch('http://127.0.0.1:8000/api/menu/offers/manage/', {
+            const res = await fetch(`${API}/api/menu/offers/manage/`, {
                 method: 'POST',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -49,7 +52,7 @@ const OwnerOfferManager = () => {
                 setFormData({ title: '', description: '', discount_percentage: 10 });
                 fetchOffers();
             } else {
-                alert('Failed to create offer.');
+                toast.error('Failed to create offer.');
             }
         } catch (error) {
             console.error("Error creating offer:", error);
@@ -60,7 +63,7 @@ const OwnerOfferManager = () => {
 
     const toggleOfferStatus = async (offer) => {
         try {
-            const res = await fetch(`http://127.0.0.1:8000/api/menu/offers/manage/${offer.id}/`, {
+            const res = await fetch(`${API}/api/menu/offers/manage/${offer.id}/`, {
                 method: 'PATCH',
                 headers: { 
                     'Content-Type': 'application/json',
@@ -77,28 +80,99 @@ const OwnerOfferManager = () => {
     };
 
     const deleteOffer = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this offer?")) return;
-        try {
-            const res = await fetch(`http://127.0.0.1:8000/api/menu/offers/manage/${id}/`, {
+        toast('Delete this offer?', {
+            action: { label: 'Delete', onClick: async () => {
+                try {
+                    const res = await fetch(`${API}/api/menu/offers/manage/${id}/`, {
                 method: 'DELETE',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
-            if (res.ok) {
-                fetchOffers();
-            }
-        } catch (error) {
-            console.error("Error deleting offer:", error);
-        }
+                    if (res.ok) {
+                        fetchOffers();
+                        toast.success('Offer deleted.');
+                    }
+                } catch (error) {
+                    console.error("Error deleting offer:", error);
+                }
+            }},
+            cancel: { label: 'Cancel', onClick: () => {} },
+        });
     };
 
     if (loading) return <div style={{ textAlign: 'center', marginTop: '50px' }}>Loading offers...</div>;
 
     return (
-        <div style={{ maxWidth: '900px', margin: '40px auto', padding: '20px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-                <h2 style={{ color: '#2c3e50', margin: 0 }}>🏷️ Manage Offers</h2>
-                <Link to="/owner-dashboard" style={{ textDecoration: 'none', background: '#7f8c8d', color: 'white', padding: '8px 16px', borderRadius: '5px' }}>
-                    ← Back to Dashboard
+        <div style={{ maxWidth: '1000px', margin: '30px auto', padding: '0 24px 50px' }}>
+            {/* Modern Top Header Bar */}
+            <div style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                backgroundColor: '#ffffff',
+                padding: '20px 28px',
+                borderRadius: '16px',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.05)',
+                border: '1px solid #f0ede6',
+                marginBottom: '30px',
+                flexWrap: 'wrap',
+                gap: '16px'
+            }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{
+                        width: '52px',
+                        height: '52px',
+                        borderRadius: '14px',
+                        background: 'linear-gradient(135deg, #fef3c7 0%, #fde68a 100%)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontSize: '1.8rem',
+                        boxShadow: '0 2px 8px rgba(245, 158, 11, 0.15)'
+                    }}>
+                        🏷️
+                    </div>
+                    <div>
+                        <h2 style={{ margin: 0, fontSize: '1.6rem', fontWeight: 700, color: '#2c2520' }}>
+                            Manage Offers & Discounts
+                        </h2>
+                        <p style={{ margin: '4px 0 0 0', fontSize: '0.9rem', color: '#7f8c8d' }}>
+                            Create promotional discounts and active deals for your restaurant
+                        </p>
+                    </div>
+                </div>
+
+                <Link
+                    to="/owner-dashboard"
+                    style={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '8px',
+                        padding: '10px 20px',
+                        backgroundColor: '#ffffff',
+                        color: '#2c3e50',
+                        border: '1.5px solid #cbd5e1',
+                        borderRadius: '10px',
+                        textDecoration: 'none',
+                        fontWeight: 600,
+                        fontSize: '0.92rem',
+                        boxShadow: '0 2px 6px rgba(0,0,0,0.04)',
+                        transition: 'all 0.2s ease',
+                        cursor: 'pointer'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = '#f8fafc';
+                        e.currentTarget.style.borderColor = '#94a3b8';
+                        e.currentTarget.style.transform = 'translateY(-1px)';
+                        e.currentTarget.style.boxShadow = '0 4px 12px rgba(0,0,0,0.08)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = '#ffffff';
+                        e.currentTarget.style.borderColor = '#cbd5e1';
+                        e.currentTarget.style.transform = 'none';
+                        e.currentTarget.style.boxShadow = '0 2px 6px rgba(0,0,0,0.04)';
+                    }}
+                >
+                    <span style={{ fontSize: '1.1rem', fontWeight: 700 }}>←</span> Back to Dashboard
                 </Link>
             </div>
 

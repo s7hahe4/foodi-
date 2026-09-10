@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { API } from '../api/client';
 import { useCart } from './cartcontext';
 
 const PaymentGateway = () => {
@@ -25,21 +27,21 @@ const PaymentGateway = () => {
             // Simulate network delay for realism
             await new Promise(resolve => setTimeout(resolve, 1500));
 
-            const res = await fetch(`http://127.0.0.1:8000/api/menu/orders/pay/${orderId}/`, {
+            const res = await fetch(`${API}/api/menu/orders/pay/${orderId}/`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
             if (res.ok) {
                 clearCart();
-                alert('Payment Successful! 🎉 Your order has been sent to the restaurant. You can track it in your orders page.');
+                toast.success('Payment Successful! 🎉 Your order has been sent to the restaurant. Track it in Orders.');
                 navigate('/orders');
             } else {
-                alert('Payment verification failed.');
+                toast.error('Payment verification failed.');
             }
         } catch (err) {
             console.error('Payment error:', err);
-            alert('Payment network error.');
+            toast.error('Payment network error.');
         } finally {
             setLoading(false);
         }

@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { API } from '../api/client';
 import { useCart } from './cartcontext';
 import MapSelector from './MapSelector';
 import BackButton from './BackButton';
@@ -31,7 +33,7 @@ const CartPage = () => {
         const restaurantId = cartItems[0].item.restaurant;
         const fetchRestaurant = async () => {
             try {
-                const res = await fetch(`http://127.0.0.1:8000/api/restaurants/feed/`);
+                const res = await fetch(`${API}/api/restaurants/feed/`);
                 if (res.ok) {
                     const data = await res.json();
                     const restaurants = Array.isArray(data) ? data : (data.results || []);
@@ -111,7 +113,7 @@ const CartPage = () => {
     const handleCheckout = async () => {
         const token = localStorage.getItem('access_token');
         if (!token) {
-            alert('Please login to checkout!');
+            toast.error('Please login to checkout!');
             navigate('/login');
             return;
         }
@@ -119,13 +121,13 @@ const CartPage = () => {
         if (cartItems.length === 0) return;
         
         if (!deliveryLocation) {
-            alert("Please set a delivery location first!");
+            toast.warning('Please set a delivery location first!');
             setIsMapOpen(true);
             return;
         }
 
         if (deliveryFee === null) {
-            alert("Please wait for delivery fee to be calculated.");
+            toast.info('Please wait for delivery fee to be calculated.');
             return;
         }
 
@@ -144,7 +146,7 @@ const CartPage = () => {
                 delivery_fee: deliveryFee
             };
 
-            const res = await fetch('http://127.0.0.1:8000/api/menu/orders/place/', {
+            const res = await fetch(`${API}/api/menu/orders/place/`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -157,11 +159,11 @@ const CartPage = () => {
                 const orderData = await res.json();
                 navigate(`/checkout/pay/${orderData.id}`);
             } else {
-                alert('Failed to place order. Try again.');
+                toast.error('Failed to place order. Try again.');
             }
         } catch (err) {
             console.error('Order error:', err);
-            alert('Network error.');
+            toast.error('Network error.');
         } finally {
             setPlacingOrder(false);
         }

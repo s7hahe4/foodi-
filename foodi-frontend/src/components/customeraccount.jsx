@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { API } from '../api/client';
 
 const CustomerAccount = () => {
     const navigate = useNavigate();
@@ -24,7 +26,7 @@ const CustomerAccount = () => {
                 return;
             }
             try {
-                const res = await fetch('http://127.0.0.1:8000/api/users/profile/', {
+                const res = await fetch(`${API}/api/users/profile/`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -58,7 +60,7 @@ const CustomerAccount = () => {
         }
 
         try {
-            const res = await fetch('http://127.0.0.1:8000/api/users/profile/', {
+            const res = await fetch(`${API}/api/users/profile/`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -68,17 +70,17 @@ const CustomerAccount = () => {
             });
 
             if (res.ok) {
-                alert('Profile updated successfully!');
+                toast.success('Profile updated successfully! ✅');
                 const data = await res.json();
                 setUser(data);
                 setFormData(prev => ({ ...prev, password: '' })); // clear password field
             } else {
                 const errData = await res.json();
-                alert(`Error: ${JSON.stringify(errData)}`);
+                toast.error(`Error: ${JSON.stringify(errData)}`);
             }
         } catch (err) {
             console.error(err);
-            alert('Network error while saving profile.');
+            toast.error('Network error while saving profile.');
         } finally {
             setSaving(false);
         }
@@ -140,6 +142,41 @@ const CustomerAccount = () => {
                             {tab.label}
                         </button>
                     ))}
+
+                    <div style={{ padding: '8px 12px', borderTop: '1px solid #f1f5f9', marginTop: '6px' }}>
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (window.openFoodiLogoutModal) {
+                                    window.openFoodiLogoutModal({
+                                        title: 'Log out of Account?',
+                                        message: 'Are you sure you want to log out of your Foodi++ account?'
+                                    });
+                                } else {
+                                    localStorage.clear();
+                                    navigate('/login');
+                                }
+                            }}
+                            style={{
+                                width: '100%',
+                                textAlign: 'left',
+                                padding: '12px 14px',
+                                background: '#fff1f2',
+                                border: '1px solid #fecdd3',
+                                borderRadius: '8px',
+                                color: '#e11d48',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                fontSize: '0.92rem',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
+                                transition: 'all 0.2s'
+                            }}
+                        >
+                            <span>🚪</span> Log Out
+                        </button>
+                    </div>
                 </div>
             </div>
 

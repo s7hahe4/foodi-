@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API } from '../api/client';
 
 const AdminOfferManager = () => {
     const [offers, setOffers] = useState([]);
@@ -8,7 +9,7 @@ const AdminOfferManager = () => {
         const fetchOffers = async () => {
             try {
                 const token = localStorage.getItem('access_token');
-                const res = await fetch('http://127.0.0.1:8000/api/admin/offers/', {
+                const res = await fetch(`${API}/api/admin/offers/`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -27,7 +28,7 @@ const AdminOfferManager = () => {
     const toggleOfferStatus = async (offer) => {
         try {
             const token = localStorage.getItem('access_token');
-            const res = await fetch(`http://127.0.0.1:8000/api/admin/offers/${offer.id}/`, {
+            const res = await fetch(`${API}/api/admin/offers/${offer.id}/`, {
                 method: 'PATCH',
                 headers: { 
                     'Content-Type': 'application/json',

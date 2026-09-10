@@ -1,10 +1,12 @@
+import { useState, useEffect } from 'react';
+import { API } from '../api/client';
+
 const AdminUserProfile = ({ userId, onBack }) => {
-    const [details, setDetails] = useState(null);
 
     useEffect(() => {
         const fetchUserActivity = async () => {
             const token = localStorage.getItem('access_token');
-            const res = await fetch(`http://127.0.0.1:8000/api/users/admin/users/${userId}/detail/`, {
+            const res = await fetch(`${API}/api/users/admin/users/${userId}/detail/`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
             const data = await res.json();

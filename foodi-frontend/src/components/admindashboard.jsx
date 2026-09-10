@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { API } from '../api/client';
 import AdminUserManager from './adminusermanager';
 import AdminRestaurantManager from './adminrestaurantmanager';
 import AdminOrderManager from './adminordermanager';
@@ -13,7 +14,7 @@ const AdminDashboard = () => {
         const fetchStats = async () => {
             try {
                 const token = localStorage.getItem('access_token');
-                const res = await fetch('http://127.0.0.1:8000/api/admin/stats/', {
+                const res = await fetch(`${API}/api/admin/stats/`, {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
                 if (res.ok) {
@@ -55,8 +56,15 @@ const AdminDashboard = () => {
                         onClick={() => setActiveTab('settings')}>⚙️ Settings</li>
                     
                     <li className="logout-item" onClick={() => {
-                        localStorage.clear();
-                        window.location.href = '/login';
+                        if (window.openFoodiLogoutModal) {
+                            window.openFoodiLogoutModal({
+                                title: 'Log out of Admin Panel?',
+                                message: 'Are you sure you want to exit the Foodi++ Administrator dashboard?'
+                            });
+                        } else {
+                            localStorage.clear();
+                            window.location.href = '/login';
+                        }
                     }}>🚪 Logout</li>
                 </ul>
             </aside>

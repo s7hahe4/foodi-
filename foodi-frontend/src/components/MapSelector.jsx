@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { toast } from 'sonner';
 import { MapContainer, TileLayer, Marker, useMapEvents, useMap } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
@@ -52,10 +53,10 @@ const MapSelector = ({ isOpen, onClose, onSelect, initialPosition }) => {
                 (pos) => {
                     setPosition({ lat: pos.coords.latitude, lng: pos.coords.longitude });
                 },
-                (err) => alert("Could not fetch location. Please ensure location permissions are enabled.")
+                (err) => toast.error('Could not fetch location. Please ensure location permissions are enabled.')
             );
         } else {
-            alert("Geolocation is not supported by your browser.");
+            toast.error('Geolocation is not supported by your browser.');
         }
     };
 

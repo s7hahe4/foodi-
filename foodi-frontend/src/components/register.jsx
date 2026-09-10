@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
+import { API } from '../api/client';
 import authBg1 from '../assets/auth-bg.png';
 import authBg2 from '../assets/auth-bg-2.png';
 import authBg3 from '../assets/auth-bg-3.png';
@@ -29,18 +31,18 @@ const Register = () => {
         e.preventDefault();
         setLoading(true);
         try {
-            const response = await fetch('http://127.0.0.1:8000/api/users/register/', {
+            const response = await fetch(`${API}/api/users/register/`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(formData)
             });
             const data = await response.json();
             if (response.ok) {
-                alert("Registration Successful! Please login.");
+                toast.success('Registration Successful! Please login. 🎉');
                 navigate('/login');
             } else {
                 console.error(data);
-                alert("Error: " + JSON.stringify(data));
+                toast.error('Error: ' + JSON.stringify(data));
             }
         } catch (error) {
             console.error("Connection failed", error);
@@ -50,12 +52,14 @@ const Register = () => {
     };
 
     return (
-        <div className="auth-wrapper">
-            <div className="auth-left-pane" style={{ backgroundImage: `url(${bgImages[bgIndex]})`, transition: 'background-image 1.5s ease-in-out' }}>
-                {/* Left side image area */}
-            </div>
-            
-            <div className="auth-right-pane">
+        <div 
+            className="auth-wrapper" 
+            style={{ 
+                backgroundImage: `url(${bgImages[bgIndex]})`, 
+                transition: 'background-image 1.5s ease-in-out' 
+            }}
+        >
+            <div className="auth-overlay">
                 <div className="auth-card">
                     <h2>Create an Account</h2>
                     <p className="auth-subtitle">Join Foodi++ to start your journey.</p>
